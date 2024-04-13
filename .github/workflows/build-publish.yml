@@ -5,7 +5,36 @@ on:
     tags: [ "*" ]
 
 jobs:
-  build:
+  build-macos-amd64:
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run:  gcc-13 -o loic-macos loic.c -static -s -lpthread
+    - name: Upload to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos
+        path: loic-macos
+
+  build-macos-arm64:
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+    runs-on: macos-14-arm64
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run:  gcc-13 -o loic-macos-arm64 loic.c -static -s -lpthread
+    - name: Upload to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos
+        path: loic-macos-arm64
+
+  build-linux:
+    needs: [build-macos-amd64, build-macos-arm64]
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       archs: >
@@ -33,6 +62,10 @@ jobs:
     container:
       image: amitie10g/cross-gcc:all
     steps:
+    - name: Restore artifacts from macos
+      uses: actions/download-artifact@v4
+      with:
+        name: macos
     - uses: actions/checkout@v4
     - name: Build
       run: |
@@ -54,3 +87,9 @@ jobs:
         tag: ${{ github.ref }}
         file_glob: true
         overwrite: true
+    - name: Remove artifacts
+      run: |
+        curl \
+          -X DELETE \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/actions/artifacts/nombre-del-artifact
