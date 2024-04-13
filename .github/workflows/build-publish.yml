@@ -48,7 +48,7 @@ jobs:
     container:
       image: amitie10g/cross-gcc:all
     steps:
-    - name: Restore artifacts from macos
+    - name: Restore artifacts from macOS
       uses: actions/download-artifact@v4
       with:
         name: macos
@@ -60,7 +60,7 @@ jobs:
         done
         arm-linux-gnueabihf-gcc-13 -o loic-armhf loic.c -static -s -lpthread
         x86_64-linux-gnu-gcc-13 -o loic loic.c -static -s -lpthread
-        ls 
+        ls /__w/loic-cli/loic-cli
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
