@@ -44,7 +44,13 @@ jobs:
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
-        file: "loic*"
+        file: "loic"
         tag: ${{ github.ref }}
-        file_glob: true
+        overwrite: true
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: "loic-*"
+        tag: ${{ github.ref }}
+        glob: true
         overwrite: true
