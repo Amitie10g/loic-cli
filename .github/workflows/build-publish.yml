@@ -5,36 +5,22 @@ on:
     tags: [ "*" ]
 
 jobs:
-  build-macos-amd64:
+  build-macos:
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
     runs-on: macos-14
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run:  gcc-13 -o loic-macos loic.c -static -s -lpthread
+      run:  clang -o loic-macos loic.c -arch x86_64 -arch arm64 -lpthread
     - name: Upload to Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: macos
         path: loic-macos
 
-  build-macos-arm64:
-    env:
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-    runs-on: macos-14-arm64
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run:  gcc-13 -o loic-macos-arm64 loic.c -static -s -lpthread
-    - name: Upload to Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos
-        path: loic-macos-arm64
-
   build-linux:
-    needs: [build-macos-amd64, build-macos-arm64]
+    needs: build-macos
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       archs: >
