@@ -52,5 +52,5 @@ jobs:
       with:
         file: "loic-*"
         tag: ${{ github.ref }}
-        glob: true
+        file_glob: true
         overwrite: true
