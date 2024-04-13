@@ -1,0 +1,75 @@
+name: Publish
+
+on:
+  push:
+    tags: [ "*" ]
+
+jobs:
+  build-macos:
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run:  clang -o loic-macos loic.c -arch x86_64 -arch arm64 -lpthread
+    - name: Upload to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos
+        path: loic-macos
+
+  build-linux:
+    needs: build-macos
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+      archs: >
+        aarch64-linux-gnu
+        alpha-linux-gnu
+        arc-linux-gnu
+        arm-linux-gnueabi
+        hppa-linux-gnu
+        i686-linux-gnu
+        m68k-linux-gnu
+        mips-linux-gnu
+        mips64-linux-gnuabi64
+        mips64el-linux-gnuabi64
+        mipsel-linux-gnu
+        mipsisa32r6-linux-gnu
+        mipsisa32r6el-linux-gnu
+        mipsisa64r6-linux-gnuabi64
+        mipsisa64r6el-linux-gnuabi64
+        powerpc-linux-gnu
+        riscv64-linux-gnu
+        s390x-linux-gnu
+        sh4-linux-gnu
+        sparc64-linux-gnu
+    runs-on: ubuntu-latest
+    container:
+      image: amitie10g/cross-gcc:all
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: |
+        for arch in ${archs}; do
+          ${arch}-gcc-13 -o loic-$(echo "${arch}" | cut -d '-' -f 1) loic.c -static -s -lpthread
+        done
+        arm-linux-gnueabihf-gcc-13 -o loic-armhf loic.c -static -s -lpthread
+        x86_64-linux-gnu-gcc-13 -o loic loic.c -static -s -lpthread
+    - name: Restore artifacts from macOS
+      uses: actions/download-artifact@v4
+      with:
+        name: macos
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: "loic"
+        tag: ${{ github.ref }}
+        overwrite: true
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: "loic-*"
+        tag: ${{ github.ref }}
+        file_glob: true
+        overwrite: true
