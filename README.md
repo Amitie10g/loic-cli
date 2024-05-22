@@ -8,7 +8,7 @@ This is a fork of the [Emily Eisenberg](https://github.com/xymostech)'s [loic](h
 * ``loic <domain>`` (from Releases)
 
 ## Downloading
-* Standalone executable is available at [Releases]([https://github.com/Amitie10g/loic-cli/releases](https://github.com/amitie10g/loic-cli/releases/tag/20240411006))
+* Standalone executable is available at [Releases](https://github.com/amitie10g/loic-cli/releases/tag/20240411006)
 
 ## Building
 * For your convenience, you can use the [GCC Docker container image](https://hub.docker.com/_/gcc)
